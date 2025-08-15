@@ -196,4 +196,91 @@ function loop() {
 }
 
 loop();
+function drawPlayerShip(x, y) {
+  // Main body
+  ctx.fillStyle = "cyan";
+  ctx.fillRect(x + 15, y, 10, 40);
+
+  // Wings
+  ctx.fillStyle = "white";
+  ctx.beginPath();
+  ctx.moveTo(x, y + 40);
+  ctx.lineTo(x + 20, y + 20);
+  ctx.lineTo(x, y + 20);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(x + 40, y + 40);
+  ctx.lineTo(x + 20, y + 20);
+  ctx.lineTo(x + 40, y + 20);
+  ctx.closePath();
+  ctx.fill();
+
+  // Cockpit
+  ctx.fillStyle = "orange";
+  ctx.fillRect(x + 17, y + 5, 6, 10);
+}
+
+function drawEnemyShip(x, y) {
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.moveTo(x + 15, y);
+  ctx.lineTo(x, y + 30);
+  ctx.lineTo(x + 30, y + 30);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "yellow";
+  ctx.fillRect(x + 13, y + 10, 4, 8);
+}
+
+function drawBossShip(boss) {
+  // Main body
+  ctx.fillStyle = "gray";
+  ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+
+  // Turrets
+  ctx.fillStyle = "darkred";
+  ctx.fillRect(boss.x + 50, boss.y - 10, 10, 20);
+  ctx.fillRect(boss.x + boss.w - 60, boss.y - 10, 10, 20);
+
+  // Command tower
+  ctx.fillStyle = "lightgray";
+  ctx.fillRect(boss.x + boss.w/2 - 15, boss.y - 20, 30, 20);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Player
+  drawPlayerShip(player.x, player.y);
+
+  // Bullets
+  ctx.fillStyle = "yellow";
+  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+  // Rockets
+  ctx.fillStyle = "red";
+  rockets.forEach(r => ctx.fillRect(r.x, r.y, r.w, r.h));
+
+  // Enemies
+  enemies.forEach(e => drawEnemyShip(e.x, e.y));
+
+  // Boss
+  if (boss) {
+    drawBossShip(boss);
+    // Health bar
+    ctx.fillStyle = "white";
+    ctx.fillRect(200, 30, 400, 10);
+    ctx.fillStyle = "red";
+    ctx.fillRect(200, 30, (bossHealth / 200) * 400, 10);
+  }
+
+  // HUD
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText("Kills: " + killCount, 10, 20);
+  ctx.fillText("Weapon: " + currentWeapon, 10, 50);
+}
 
