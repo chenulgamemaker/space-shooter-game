@@ -8,4 +8,4 @@ A retro spaceship shooter game built with HTML5 Canvas and JavaScript.
 - Destroy all enemies before they reach you!
 
 ## 🌐 Play Online
-Once published, your game will be live at:
+
