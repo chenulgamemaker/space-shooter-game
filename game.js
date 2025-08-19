@@ -1,10 +1,11 @@
-const canvas = document.getElementById("gameCanvas");
+ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 let keys = {};
 let bullets = [];
 let enemyBullets = [];
 let enemies = [];
+let powerUps = [];
 let score = 0;
 let level = 1;
 let gameOver = false;
@@ -17,7 +18,8 @@ const player = {
   height: 50,
   speed: 5,
   health: 5,
-  gun: "single"
+  gun: "single",
+  shield: 0 // frames of invincibility
 };
 
 document.addEventListener("keydown", (e) => keys[e.code] = true);
@@ -25,7 +27,7 @@ document.addEventListener("keyup", (e) => keys[e.code] = false);
 
 // === PLAYER ===
 function drawPlayer() {
-  ctx.fillStyle = "cyan";
+  ctx.fillStyle = player.shield > 0 ? "lightblue" : "cyan";
   ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
@@ -108,6 +110,41 @@ function drawEnemies() {
   });
 }
 
+// === POWER UPS ===
+function dropPowerUp(x, y) {
+  const rand = Math.random();
+  if (rand < 0.2) { // 20% chance
+    let type;
+    if (rand < 0.07) type = "health";
+    else if (rand < 0.14) type = "gun";
+    else type = "shield";
+    powerUps.push({ type, x, y, size: 20, speed: 2 });
+  }
+}
+
+function drawPowerUps() {
+  powerUps.forEach((p, i) => {
+    p.y += p.speed;
+    if (p.type === "health") ctx.fillStyle = "green";
+    if (p.type === "gun") ctx.fillStyle = "blue";
+    if (p.type === "shield") ctx.fillStyle = "lightblue";
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+
+    if (p.y > canvas.height) powerUps.splice(i, 1);
+
+    // collision with player
+    if (p.x < player.x + player.width && p.x + p.size > player.x && p.y < player.y + player.height && p.y + p.size > player.y) {
+      if (p.type === "health") player.health++;
+      if (p.type === "gun") {
+        const guns = ["single", "double", "spread"];
+        player.gun = guns[Math.floor(Math.random() * guns.length)];
+      }
+      if (p.type === "shield") player.shield = 300; // ~5 sec
+      powerUps.splice(i, 1);
+    }
+  });
+}
+
 // === BOSS ===
 function spawnBoss() {
   if (!boss && score >= 200) {
@@ -135,6 +172,7 @@ function checkCollisions() {
         bullets.splice(bi, 1);
         e.health -= 1;
         if (e.health <= 0) {
+          dropPowerUp(e.x, e.y);
           enemies.splice(ei, 1);
           score += 10;
         }
@@ -146,6 +184,7 @@ function checkCollisions() {
       boss.health -= 1;
       if (boss.health <= 0) {
         score += 100;
+        dropPowerUp(boss.x + boss.width/2, boss.y + boss.height/2);
         boss = null;
         level++;
       }
@@ -155,8 +194,10 @@ function checkCollisions() {
   enemyBullets.forEach((b, bi) => {
     if (b.x < player.x + player.width && b.x + b.width > player.x && b.y < player.y + player.height && b.y + b.height > player.y) {
       enemyBullets.splice(bi, 1);
-      player.health -= 1;
-      if (player.health <= 0) gameOver = true;
+      if (player.shield <= 0) {
+        player.health -= 1;
+        if (player.health <= 0) gameOver = true;
+      }
     }
   });
 }
@@ -196,11 +237,15 @@ function gameLoop() {
   drawEnemies();
   spawnBoss();
   drawBoss();
+  drawPowerUps();
   checkCollisions();
   drawUI();
+
+  if (player.shield > 0) player.shield--;
 
   requestAnimationFrame(gameLoop);
 }
 
 gameLoop();
+
 
